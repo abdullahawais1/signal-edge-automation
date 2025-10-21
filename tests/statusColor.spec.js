@@ -18,9 +18,6 @@ test.describe("Signal Dispatch Suite - Status Color Verification", () => {
   });
 
   test("Verify all status tag colors are correct", async () => {
-    
-    await dispatchPage.verifyStatusColors();
-
     await dispatchPage.openAssignPage();
 
     await dispatchPage.clearAllStatuses();

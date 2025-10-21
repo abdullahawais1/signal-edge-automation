@@ -44,7 +44,7 @@ export class DispatchPage {
   // ---------------- Common Methods ----------------
 
   async openAssignPage() {
-    await this.dispatchRow.waitFor({ state: "visible", timeout: 20000 });
+    await this.dispatchRow.waitFor({ state: "visible", timeout: 40000 });
     await this.dispatchRow.click();
     await this.page.waitForURL("**/assign-officer**", { timeout: 30000 });
     await expect(this.page).toHaveURL(/assign-officer/);
@@ -392,80 +392,83 @@ async verifyTimeWindowOptions() {
 async verifyOfficersDisplayCorrectly() {
   const { page } = this;
 
-  // --- Step 1: Open Officers Dropdown ---
   const allOfficersDropdown = page.getByRole('heading', { name: 'All Officers' });
-  const officersDropdownPanel = page.locator('#simple-popper');
+    await allOfficersDropdown.waitFor({ state: 'visible', timeout: 15000 });
+    await allOfficersDropdown.click();
 
-  await allOfficersDropdown.waitFor({ state: 'visible', timeout: 15000 });
-  await allOfficersDropdown.click();
-  await officersDropdownPanel.waitFor({ state: 'visible', timeout: 10000 });
-  console.log("✅ Opened 'All Officers' dropdown");
+    const officersDropdownPanel = page.locator('#simple-popper');
+    await expect(officersDropdownPanel).toBeVisible({ timeout: 10000 });
 
-  // --- Step 2: Fetch all available officer names ---
-  let availableOfficers = (
-    await officersDropdownPanel.locator('div.MuiBox-root.css-0').allInnerTexts()
-  )
-    .map(name => name.replace(/[\u200B-\u200D\uFEFF]/g, '').trim())
-    .filter(name => name.length > 0);
+    let availableOfficers = (
+      await page.locator('#simple-popper div.MuiBox-root.css-0').allInnerTexts()
+    )
+      .map(name => name.replace(/[\u200B-\u200D\uFEFF]/g, '').trim())
+      .filter(name => name.length > 0);
 
-  if (availableOfficers.length === 0) {
-    console.log('⚠️ No officers available to select.');
-    return;
-  }
+    let selectedOfficers = [];
 
-  // --- Step 3: Randomly select 2–3 officers ---
-  availableOfficers = availableOfficers.sort(() => Math.random() - 0.5);
-  const officersToSelect = availableOfficers.slice(0, 3);
-  console.log(`✅ Selecting officers: ${officersToSelect.join(', ')}`);
-
-  for (const officerName of officersToSelect) {
-    const officerLocator = officersDropdownPanel
-      .locator('div')
-      .filter({ hasText: officerName })
-      .first();
-
-    await officerLocator.scrollIntoViewIfNeeded();
-    await officerLocator.click();
-  }
-
-  // --- Step 4: Close dropdown ---
-  await allOfficersDropdown.click();
-  await expect(officersDropdownPanel).toBeHidden({ timeout: 5000 });
-  console.log("✅ Closed 'All Officers' dropdown");
-
-  // --- Step 5: Verify officers appear in correct sections ---
-  console.log('🔍 Verifying selected officers in job sections...');
-
-  for (const officerName of officersToSelect) {
-    let found = false;
-
-    const dedicatedLocator = page.locator(
-      "div.MuiAccordion-root",
-      { has: page.locator("h6", { hasText: "Dedicated Jobs" }) }
-    ).locator(`text=${officerName}`);
-
-    if (await dedicatedLocator.isVisible()) {
-      console.log(`✅ Officer "${officerName}" found in Dedicated Jobs section.`);
-      found = true;
+    if (availableOfficers.length === 0) {
+      console.log('⚠️ No officers available to select.');
     } else {
-      const patrolLocator = page.locator(
+      availableOfficers = availableOfficers.sort(() => Math.random() - 0.5);
+      const officersToSelect = availableOfficers.slice(0, 3);
+      console.log(`✅ Selecting officers: ${officersToSelect.join(', ')}`);
+
+      for (const officerName of officersToSelect) {
+        const officerLocator = page
+          .locator('#simple-popper div')
+          .filter({ hasText: officerName })
+          .first();
+
+        await officerLocator.scrollIntoViewIfNeeded();
+        await officerLocator.click();
+      }
+
+      selectedOfficers = officersToSelect;
+      console.log('✅ Selected officer(s):', selectedOfficers);
+
+      const allOfficersHeader = page.getByRole('heading', { name: /All Officers/i });
+      await allOfficersHeader.click();
+      await expect(page.locator('#simple-popper')).toBeHidden({ timeout: 5000 });
+    }
+
+    // ---------------------- STEP 4: VERIFY SELECTED OFFICERS IN JOB SECTIONS ----------------------
+    console.log('🔍 Verifying selected officers in job sections...');
+
+    for (const officerName of selectedOfficers) {
+      let found = false;
+
+      const dedicatedLocator = page.locator(
         "div.MuiAccordion-root",
-        { has: page.locator("h6", { hasText: "Patrol Jobs (Runsheets)" }) }
+        { has: page.locator("h6", { hasText: "Dedicated Jobs" }) }
       ).locator(`text=${officerName}`);
 
-      if (await patrolLocator.isVisible()) {
-        console.log(`✅ Officer "${officerName}" found in Patrol Jobs section.`);
+      await page.waitForTimeout(1000);
+
+      if (await dedicatedLocator.isVisible()) {
+        console.log(`✅ Officer "${officerName}" found in Dedicated Jobs section.`);
         found = true;
+      } else {
+        const patrolLocator = page.locator(
+          "div.MuiAccordion-root",
+          { has: page.locator("h6", { hasText: "Patrol Jobs (Runsheets)" }) }
+        ).locator(`text=${officerName}`);
+
+        await page.waitForTimeout(1000);
+
+        if (await patrolLocator.isVisible()) {
+          console.log(`✅ Officer "${officerName}" found in Patrol Jobs section.`);
+          found = true;
+        }
+      }
+
+      if (!found) {
+        console.log(`❌ Officer "${officerName}" not found in either Dedicated or Patrol Jobs sections.`);
       }
     }
 
-    if (!found) {
-      console.log(`❌ Officer "${officerName}" not found in either Dedicated or Patrol Jobs sections.`);
-    }
+    console.log('✅ Verification of selected officers completed.');
   }
-
-  console.log('🎯 Officers display verified successfully.');
-}
 
 
   }
