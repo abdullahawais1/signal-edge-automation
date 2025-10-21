@@ -1,0 +1,18 @@
+{
+  "name": "playwright-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test:uat": "cross-env ENV_NAME=uat npx playwright test --project=chromium --workers=1",
+    "test:prod": "cross-env ENV_NAME=prod npx playwright test --project=chromium --workers=1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^24.8.1",
+    "cross-env": "^10.1.0"
+  }
+}
