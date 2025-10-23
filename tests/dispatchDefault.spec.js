@@ -6,8 +6,10 @@ import { DispatchPage } from "../pages/DispatchPage.js";
 test.describe("Signal Dispatch Suite - Default Status Verification", () => {
   let loginPage;
   let dispatchPage;
+  test.setTimeout(120_000);
 
   test.beforeEach(async ({ page }) => {
+    await page.route(/\.(png|jpg|jpeg)$/i, route => route.abort());
     loginPage = new LoginPage(page);
     dispatchPage = new DispatchPage(page);
 

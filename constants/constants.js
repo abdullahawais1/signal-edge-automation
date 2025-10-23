@@ -12,9 +12,9 @@ export const ENVIRONMENTS = {
     PASSWORD: "Admin@123",
   },
   prod: {
-    BASE_URL: "https://prod.signaledge.teamsignal.com",
-    EMAIL: "prod_email@example.com",
-    PASSWORD: "prod_password",
+    BASE_URL: "https://portal.teamsignal.com/",
+    EMAIL: "oliver.ryan@yopmail.com",
+    PASSWORD: "Admin@123",
   },
 };
 

@@ -21,8 +21,7 @@ export class LoginPage {
   }
 
   async login() {
-    // Block heavy resources (images)
-    await this.page.route(/\.(png|jpg|jpeg)$/i, route => route.abort());
+
 
     await this.loginButton.waitFor({ state: "visible", timeout: 20000 });
     await this.loginButton.click();
